@@ -1,0 +1,612 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fontawesome} % Pour les icônes
+\usepackage{graphicx}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red}, % Remplacement de purple par red
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% Définition du langage JavaScript
+\lstdefinelanguage{JavaScript}{
+    keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, import, from, export, default},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={class, export, boolean, throw, implements, import, this},
+    ndkeywordstyle=\color{darkgray}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{codegreen}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% Définition du langage GraphQL
+\lstdefinelanguage{GraphQL}{
+    keywords={type, query, mutation, input, interface, scalar, schema, extend, enum, union, directive},
+    sensitive=true,
+    comment=[l]{\#},
+    string=[b]{"},
+}
+
+% Définition du langage JSON
+\lstdefinelanguage{JSON}{
+    keywords={true, false, null},
+    sensitive=true,
+    comment=[l]{//},
+    string=[b]{"},
+}
+
+\title{Création d’une API avec le langage de requête
+GraphQL et son utilisation avec le framework Flutter}
+\author{Bénédicta MANGBA \& François TOYI}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction à GraphQL}
+\subsection{Qu'est-ce que GraphQL?}
+\textcolor{blue}{GraphQL} est un langage de requêtes pour les APIs développé par \textcolor{blue}{Facebook} en 2015. Contrairement aux APIs REST traditionnelles, qui fonctionnent par plusieurs points de terminaison (endpoints) pour des ressources spécifiques, GraphQL utilise un seul endpoint et permet aux clients de définir précisément les données qu'ils souhaitent recevoir. Cela rend GraphQL particulièrement flexible et optimisé pour réduire le sur- ou sous-chargement de données, ce qui est très utile dans les applications modernes où le front-end peut nécessiter un contrôle plus fin sur les données échangées.
+
+\subsection{Concepts de base de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Schéma et types} : Le cœur de GraphQL repose sur un schéma fort typé. Un schéma définit les types d'objets que l'API expose, leurs champs et leurs relations.
+    \item \textcolor{blue}{Requêtes (queries)} : Les requêtes permettent aux clients de demander des données spécifiques en fonction de leurs besoins.
+    \item \textcolor{blue}{Mutations} : Les mutations permettent d'envoyer des modifications au serveur, comme la création, la mise à jour, ou la suppression d'enregistrements.
+    \item \textcolor{blue}{Résolveurs} : Un résolveur est une fonction qui gère la logique derrière chaque champ de la requête.
+    \item \textcolor{blue}{Souscriptions} : Les souscriptions permettent de recevoir des mises à jour en temps réel, utiles dans les applications en temps réel.
+\end{itemize}
+
+\subsection{Avantages de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Précision des requêtes} : Les clients peuvent demander uniquement les champs dont ils ont besoin.
+    \item \textcolor{blue}{Un endpoint unique} : Simplifie la gestion des APIs, puisque toutes les opérations passent par un seul point de terminaison.
+    \item \textcolor{blue}{Performance optimisée} : Moins de surcharges de données et plus de flexibilité dans le traitement des informations.
+    \item \textcolor{blue}{Documentation intégrée} : GraphQL est auto-documenté, ce qui facilite la découverte des possibilités de l'API.
+\end{itemize}
+
+\subsection{Limites de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Complexité} : Il peut être complexe à configurer et à apprendre, notamment pour les grands schémas.
+    \item \textcolor{blue}{Cache difficile à gérer} : Contrairement aux APIs REST où le caching est plus intuitif, le cache dans GraphQL demande souvent une gestion sur mesure.
+\end{itemize}
+
+\section{Prérequis pour utiliser GraphQL sur Ubuntu}
+\subsection{Installation des outils nécessaires}
+Avant de commencer à utiliser GraphQL, vous devez installer certains outils sur votre machine Ubuntu. Voici les étapes à suivre :
+
+\begin{enumerate}
+    \item \textcolor{blue}{Node.js et npm} : GraphQL est souvent utilisé avec Node.js. Pour installer Node.js et npm (Node Package Manager), exécutez les commandes suivantes :
+    \begin{lstlisting}[language=bash]
+    sudo apt update
+    sudo apt install nodejs npm
+    \end{lstlisting}
+
+    \item \textcolor{blue}{Éditeur de texte} : Vous aurez besoin d'un éditeur de texte pour écrire votre code. Vous pouvez utiliser \textcolor{blue}{Visual Studio Code} (VS Code) qui est très populaire parmi les développeurs. Pour installer VS Code :
+    \begin{lstlisting}[language=bash]
+    sudo snap install --classic code
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Passons à la pratique ! \faRocket}
+Maintenant que tout est installé, nous allons créer un projet GraphQL simple. Suivez les étapes ci-dessous pour afficher "Hello World" avec GraphQL.
+
+\section{Création d'un projet GraphQL}
+\subsection{Étape 1 : Initialiser un projet Node.js}
+Ouvrez votre terminal et créez un nouveau dossier pour votre projet :
+\begin{lstlisting}[language=bash]
+mkdir mon-projet-graphql
+cd mon-projet-graphql
+\end{lstlisting}
+
+Ensuite, initialisez un projet Node.js :
+\begin{lstlisting}[language=bash]
+npm init -y
+\end{lstlisting}
+
+\subsection{Étape 2 : Installer les dépendances}
+Nous allons installer les packages nécessaires pour GraphQL :
+\begin{lstlisting}[language=bash]
+npm install @apollo/server graphql
+\end{lstlisting}
+
+\subsection{Étape 3 : Créer un fichier index.js}
+Dans le dossier de votre projet, créez un fichier index.js et ajoutez le code suivant :
+\begin{lstlisting}[language=JavaScript]
+// Importation des modules nécessaires
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+
+// Définition du schéma GraphQL
+const typeDefs = `#graphql
+  type Query {
+    hello: String
+  }
+`;
+
+// Définition des résolveurs
+const resolvers = {
+  Query: {
+    hello: () => 'Bonjour tout le monde',
+  },
+};
+
+// Création du serveur Apollo
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+
+// Démarrage du serveur
+const { url } = await startStandaloneServer(server, {
+  listen: { port: 4000 },
+});
+
+console.log(`Server ready at ${url}`);
+\end{lstlisting}
+
+\subsection{Étape 4 : Lancer le serveur}
+Dans votre terminal, exécutez la commande suivante pour démarrer le serveur :
+\begin{lstlisting}[language=bash]
+node index.js
+\end{lstlisting}
+
+Vous devriez voir le message suivant dans votre terminal :
+\begin{lstlisting}[language=bash]
+Server ready at http://localhost:4000/
+\end{lstlisting}
+
+\subsection{Étape 5 : Tester l'API}
+Ouvrez votre navigateur et allez à l'adresse \url{http://localhost:4000}. Vous verrez l'interface GraphQL Playground. Entrez la requête suivante pour tester votre API :
+\begin{lstlisting}[language=GraphQL]
+query {
+  hello
+}
+\end{lstlisting}
+
+Vous devriez obtenir la réponse suivante :
+\begin{lstlisting}[language=JSON]
+{
+  "data": {
+    "hello": "Bonjour tout le monde"
+  }
+}
+\end{lstlisting}
+
+\section{Tests pratiques}
+\subsection{Ajout de nouveaux types et requêtes}
+Modifiez le fichier index.js pour ajouter un nouveau type User et une requête pour récupérer un utilisateur :
+\begin{lstlisting}[language=JavaScript]
+const typeDefs = `#graphql
+  type Query {
+    hello: String
+    user(id: ID!): User
+  }
+
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+  }
+`;
+
+const users = [
+  { id: '1', name: 'benedicta', email: 'benedicta@example.com' },
+  { id: '2', name: 'francois', email: 'francois@example.com' },
+];
+
+const resolvers = {
+  Query: {
+    hello: () => 'Bonjour tout le monde',
+    user: (parent, args) => users.find(user => user.id === args.id),
+  },
+};
+\end{lstlisting}
+
+Testez la nouvelle requête dans GraphQL Playground :
+\begin{lstlisting}[language=GraphQL]
+query {
+  user(id: "1") {
+    id
+    name
+    email
+  }
+}
+\end{lstlisting}
+
+\subsection{Utilisation de variables dans les requêtes}
+Dans GraphQL Playground, vous pouvez utiliser des variables pour rendre vos requêtes plus dynamiques. Par exemple :
+\begin{lstlisting}[language=GraphQL]
+query GetUser($userId: ID!) {
+  user(id: $userId) {
+    id
+    name
+    email
+  }
+}
+\end{lstlisting}
+
+Avec les variables suivantes :
+\begin{lstlisting}[language=JSON]
+{
+  "userId": "2"
+}
+\end{lstlisting}
+
+\subsection{Introduction aux mutations}
+Ajoutez une mutation pour créer un nouvel utilisateur :
+\begin{lstlisting}[language=JavaScript]
+const typeDefs = `#graphql
+  type Query {
+    hello: String
+    user(id: ID!): User
+  }
+
+  type Mutation {
+    createUser(name: String!, email: String!): User
+  }
+
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+  }
+`;
+
+const users = [];
+let nextId = 1;
+
+const resolvers = {
+  Query: {
+    hello: () => 'Bonjour tout le monde',
+    user: (parent, args) => users.find(user => user.id === args.id),
+  },
+  Mutation: {
+    createUser: (parent, args) => {
+      const user = { id: String(nextId++), name: args.name, email: args.email };
+      users.push(user);
+      return user;
+    },
+  },
+};
+\end{lstlisting}
+
+Testez la mutation dans GraphQL Playground :
+\begin{lstlisting}[language=GraphQL]
+mutation {
+  createUser(name: "Charlie", email: "charlie@example.com") {
+    id
+    name
+    email
+  }
+}
+\end{lstlisting}
+
+\section{Fin de la section de test}
+Félicitations ! \faTrophy Vous avez créé votre première API GraphQL et effectué des tests pratiques. Dans la prochaine partie, nous aborderons des concepts plus avancés, comme les souscriptions et l'intégration avec une base de données. Amusez-vous bien ! \faSmileO
+
+\section{Projet réaliste : Gestion des contacts avec Prisma et Flutter}
+\subsection{Concept}
+Maintenant que vous avez une compréhension de base de GraphQL, nous allons passer à un projet plus réaliste. Nous allons créer une API GraphQL pour gérer une liste de contacts, en utilisant Prisma comme ORM pour interagir avec une base de données, Nodemon pour permettre le redémarrage à chaud et JWT pour la gestion de l'authentification. Plus tard, nous consommerons cette API avec Flutter pour créer une application mobile. Ce projet sera amusant et vous permettra de voir comment tout cela fonctionne ensemble.
+
+\subsection{Analogies avec les APIs REST}
+Pour ceux qui n'ont jamais utilisé d'APIs REST, imaginez que vous êtes dans un restaurant. Avec une API REST, c'est comme si vous deviez commander chaque plat séparément à différents serveurs. Par exemple, vous commandez votre entrée à un serveur, votre plat principal à un autre, et votre dessert à un troisième. Cela peut être fastidieux et inefficace.
+
+Avec GraphQL, c'est comme si vous aviez un seul serveur qui prend votre commande complète en une seule fois. Vous pouvez demander exactement ce que vous voulez, sans avoir à passer par plusieurs serveurs. C'est plus flexible et plus efficace.
+
+\subsection{Création d'un nouveau projet structuré}
+Nous allons maintenant créer un nouveau projet structuré pour notre application de gestion des contacts. Suivez les étapes ci-dessous :
+
+\subsubsection{Étape 1 : Initialiser un nouveau projet Node.js}
+Créez un nouveau dossier pour votre projet :
+\begin{lstlisting}[language=bash]
+mkdir gestion-contacts
+cd gestion-contacts
+\end{lstlisting}
+
+Initialisez un projet Node.js :
+\begin{lstlisting}[language=bash]
+npm init -y
+\end{lstlisting}
+
+\subsubsection{Étape 2 : Installer les dépendances nécessaires}
+Installez les packages nécessaires pour GraphQL, Prisma, et Nodemon :
+\begin{lstlisting}[language=bash]
+npm install @apollo/server graphql @prisma/client
+npm install --save-dev prisma nodemon
+\end{lstlisting}
+
+\subsubsection{Étape 3 : Configurer Prisma}
+Initialisez Prisma dans votre projet :
+\begin{lstlisting}[language=bash]
+npx prisma init
+\end{lstlisting}
+
+Cela va créer un dossier prisma avec un fichier schema.prisma. Ouvrez ce fichier et configurez votre base de données. Par exemple, pour utiliser SQLite :
+\begin{lstlisting}[language=prisma]
+datasource db {
+  provider = "sqlite"
+  url = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(100) @default("")
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  contacts  Contact[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  phone     String   @db.VarChar(15)
+  address   String   @db.VarChar(255)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+\end{lstlisting}
+
+Ensuite, exécutez la commande suivante pour créer la base de données et générer le client Prisma :
+\begin{lstlisting}[language=bash]
+npx prisma migrate dev --name init
+npx prisma generate
+\end{lstlisting}
+\subsection{Structure du projet}
+Voici la structure du projet \texttt{gestion-contacts} :
+\begin{lstlisting}[language=bash]
+gestion-contacts/
+├── prisma/
+│   └── schema.prisma
+├── src/
+│   ├── schema.js
+│   ├── resolvers.js
+│   └── index.js
+├── package.json
+└── document.tex
+\end{lstlisting}
+
+\subsection{Fichier schema.js}
+Voici le contenu du fichier \texttt{schema.js} :
+\begin{lstlisting}[language=JavaScript]
+// src/schema.js
+import { gql } from 'graphql-tag';
+
+const typeDefs = gql`
+  type User {
+    id: Int!
+    name: String!
+    email: String!
+    password: String @deprecated(reason: "Not exposed in API")
+    contacts: [Contact!]!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type Contact {
+    id: Int!
+    phone: String!
+    address: String!
+    user: User!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
+  type Query {
+    users: [User!]!
+    user(id: Int!): User
+    contacts: [Contact!]!
+    contact(id: Int!): Contact
+    hello: String
+  }
+
+  type Mutation {
+    createUser(name: String!, email: String!): User!
+    createContact(phone: String!, address: String!, userId: Int!): Contact!
+    updateUser(id: Int!, name: String, email: String): User
+    updateContact(id: Int!, phone: String, address: String): Contact
+    deleteUser(id: Int!): Boolean
+    deleteContact(id: Int!): Boolean
+    signup(name: String!, email: String!, password: String!): AuthPayload!
+    login(email: String!, password: String!): AuthPayload!
+  }
+`;
+
+export default typeDefs;
+\end{lstlisting}
+
+\subsection{Fichier resolvers.js}
+Voici le contenu du fichier \texttt{resolvers.js} :
+\begin{lstlisting}[language=JavaScript]
+// src/resolvers.js
+import { PrismaClient } from '@prisma/client';
+import { signup, login } from './auth.js';
+
+const prisma = new PrismaClient();
+
+const resolvers = {
+  Query: {
+    hello: () => 'Hello, World!',
+    users: async () => await prisma.user.findMany({ include: { contacts: true } }),
+    user: async (_, { id }) => {
+      const user = await prisma.user.findUnique({ where: { id }, include: { contacts: true } });
+      if (!user) throw new Error('User not found');
+      return user;
+    },
+    contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+    contact: async (_, { id }) => {
+      const contact = await prisma.contact.findUnique({ where: { id }, include: { user: true } });
+      if (!contact) throw new Error('Contact not found');
+      return contact;
+    },
+  },
+  Mutation: {
+    createUser: async (_, { name, email }) => {
+      return await prisma.user.create({ data: { name, email } });
+    },
+    createContact: async (_, { phone, address }, { user }) => {
+      if (!user) throw new Error('Not authenticated');
+      return await prisma.contact.create({
+        data: { phone, address, userId: user.userId },
+      });
+    },
+    updateUser: async (_, { id, name, email }) => {
+      const userExists = await prisma.user.findUnique({ where: { id } });
+      if (!userExists) throw new Error('User not found');
+      return prisma.user.update({ where: { id }, data: { name, email } });
+    },
+    updateContact: async (_, { id, phone, address }) => {
+      const contactExists = await prisma.contact.findUnique({ where: { id } });
+      if (!contactExists) throw new Error('Contact not found');
+      return prisma.contact.update({ where: { id }, data: { phone, address } });
+    },
+    deleteUser: async (_, { id }) => {
+      const userExists = await prisma.user.findUnique({ where: { id } });
+      if (!userExists) throw new Error('User not found');
+      await prisma.user.delete({ where: { id } });
+      return true;
+    },
+    deleteContact: async (_, { id }) => {
+      const contactExists = await prisma.contact.findUnique({ where: { id } });
+      if (!contactExists) throw new Error('Contact not found');
+      await prisma.contact.delete({ where: { id } });
+      return true;
+    },
+    signup,
+    login,
+  },
+};
+
+export default resolvers;
+\end{lstlisting}
+
+\subsection{Fichier index.js}
+Voici le contenu du fichier \texttt{index.js} :
+\begin{lstlisting}[language=JavaScript]
+// src/index.js
+import { ApolloServer } from '@apollo/server';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import dotenv from 'dotenv';
+import typeDefs from './schema.js';
+import resolvers from './resolvers.js';
+import jwt from 'jsonwebtoken';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 4000;
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: async ({ req }) => {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+
+    if (!token) {
+      console.log('⚠️ Aucun token reçu');
+      return { userId: null };
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Token décodé :', decoded);
+      return { userId: decoded.userId };
+    } catch (error) {
+      console.error('❌ Token invalide :', error.message);
+      return { userId: null };
+    }
+  },
+});
+
+// Démarre le serveur autonome
+startStandaloneServer(server, {
+  listen: { port: PORT },
+})
+  .then(({ url }) => {
+    console.log(`Server ready at ${url}`);
+  })
+  .catch((err) => {
+    console.error('❌ Error starting server:', err);
+  });
+\end{lstlisting}
+
+
+
+
+
+
+
+
+\subsubsection{Étape 4 : Configurer Nodemon}
+Ajoutez un script dans votre package.json pour utiliser Nodemon :
+\begin{lstlisting}[language=json]
+"scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "nodemon src/index.js"
+},
+\end{lstlisting}
+
+Maintenant, vous pouvez démarrer votre serveur avec :
+\begin{lstlisting}[language=bash]
+npm run dev
+\end{lstlisting}
+
+Nodemon surveillera les changements dans vos fichiers et redémarrera automatiquement le serveur, ce qui est très pratique pendant le développement.\\
+Ne vous inquiettez pas par rapport aux volumes des codes des fichiers se trouvant dans le dossier src, nous allons expliquer tout cela pas à pas prochainement.
+
+\section{Conclusion}
+Félicitations ! Vous avez maintenant un projet GraphQL fonctionnel avec Prisma et Nodemon. Dans les prochaines étapes, nous allons explorer l'intégration avec Flutter pour créer une application mobile. Restez à l'écoute pour la suite ! \faSmileO
+
+\end{document}
