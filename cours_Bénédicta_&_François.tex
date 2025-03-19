@@ -1,0 +1,2101 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fontawesome} 
+\usepackage{graphicx}
+\usepackage{tcolorbox}
+\tcbuselibrary{listings}
+\usepackage{xcolor}
+
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{1ex plus 1ex minus .2ex}{1ex plus .2ex}
+\lstdefinestyle{custombash}{
+    language=bash,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red}, % Remplacement de purple par red
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% Définition du langage JavaScript
+\lstdefinelanguage{JavaScript}{
+    keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, import, from, export, default},
+    keywordstyle=\color{blue}\bfseries,
+    ndkeywords={class, export, boolean, throw, implements, import, this},
+    ndkeywordstyle=\color{darkgray}\bfseries,
+    identifierstyle=\color{black},
+    sensitive=false,
+    comment=[l]{//},
+    morecomment=[s]{/*}{*/},
+    commentstyle=\color{codegreen}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% Définition du langage GraphQL
+\lstdefinelanguage{GraphQL}{
+    keywords={type, query, mutation, input, interface, scalar, schema, extend, enum, union, directive},
+    sensitive=true,
+    comment=[l]{\#},
+    string=[b]{"},
+}
+
+% Définition du langage JSON
+\lstdefinelanguage{JSON}{
+    keywords={true, false, null},
+    sensitive=true,
+    comment=[l]{//},
+    string=[b]{"},
+}
+
+\title{Création d’une API avec le langage de requête
+GraphQL }
+\author{Bénédicta MANGBA \& François TOYI}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction à GraphQL}
+\subsection{Qu'est-ce que GraphQL?}
+\textcolor{blue}{GraphQL} est un langage de requêtes pour les APIs développé par \textcolor{blue}{Facebook} en 2015. Contrairement aux APIs REST traditionnelles, qui fonctionnent par plusieurs points de terminaison (endpoints) pour des ressources spécifiques, GraphQL utilise un seul endpoint et permet aux clients de définir précisément les données qu'ils souhaitent recevoir. Cela rend GraphQL particulièrement flexible et optimisé pour réduire le sur- ou sous-chargement de données, ce qui est très utile dans les applications modernes où le front-end peut nécessiter un contrôle plus fin sur les données échangées.
+
+
+
+\subsection{Concepts de base de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Schéma et types} : Le cœur de GraphQL repose sur un schéma fort typé. Un schéma définit les types d'objets que l'API expose, leurs champs et leurs relations.
+    \item \textcolor{blue}{Requêtes (queries)} : Les requêtes permettent aux clients de demander des données spécifiques en fonction de leurs besoins.
+    \item \textcolor{blue}{Mutations} : Les mutations permettent d'envoyer des modifications au serveur, comme la création, la mise à jour, ou la suppression d'enregistrements.
+    \item \textcolor{blue}{Résolveurs} : Un résolveur est une fonction qui gère la logique derrière chaque champ de la requête.
+    \item \textcolor{blue}{Souscriptions} : Les souscriptions permettent de recevoir des mises à jour en temps réel, utiles dans les applications en temps réel.
+\end{itemize}
+
+\subsection{Les types en GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Types scalaires} : Ce sont les types de base utilisés pour représenter des valeurs simples. Les principaux types scalaires sont :
+    \begin{itemize}
+        \item \texttt{Int} : Nombre entier.
+        \item \texttt{Float} : Nombre décimal.
+        \item \texttt{String} : Chaîne de texte.
+        \item \texttt{Boolean} : Valeur booléenne (\texttt{true} ou \texttt{false}).
+        \item \texttt{ID} : Identifiant unique.
+    \end{itemize}
+
+    \item \textcolor{blue}{Types objets} : Ils définissent des structures de données regroupant plusieurs champs.
+    
+    \item \textcolor{blue}{Types racines} : GraphQL repose sur trois types principaux permettant l'interaction avec l'API :
+    \begin{itemize}
+        \item \texttt{Query} : Permet de récupérer des données.
+        \item \texttt{Mutation} : Permet de modifier des données (ajout, suppression, mise à jour).
+        \item \texttt{Subscription} : Permet de recevoir des mises à jour en temps réel.
+    \end{itemize}
+
+    \item \textcolor{blue}{Types avancés} :
+    \begin{itemize}
+        \item \texttt{[Type]} : Représente une liste d'éléments d'un type donné.
+        \item \texttt{Type!} : Indique qu'une valeur est obligatoire (non nulle).
+        \item \texttt{enum} : Définit un ensemble de valeurs prédéfinies.
+        \item \texttt{interface} : Permet de définir des structures communes à plusieurs types.
+    \end{itemize}
+\end{itemize}
+
+
+
+\begin{tcolorbox}[
+    title={\faCubes~ Les types GraphQL avec des simpleexemples},
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    width=\textwidth,
+    breakable,
+    ]
+\textbf{1. Types scalaires \faAsterisk}
+\begin{itemize}
+    \item \texttt{Int} : Nombre entier \hfill Ex: \texttt{42}
+    \item \texttt{Float} : Nombre décimal \hfill Ex: \texttt{3.14}
+    \item \texttt{String} : Texte \hfill Ex: \texttt{"Bonjour ! \faSmileO}
+    \item \texttt{Boolean} : Vrai/Faux \hfill Ex: \texttt{true}
+    \item \texttt{ID} : Identifiant unique \hfill Ex: \texttt{"abc123"}
+\end{itemize}
+
+\textbf{2. Types objets \faCube} (Groupes de données)
+\begin{lstlisting}[language=GraphQL]
+
+type Livre {
+  titre: String!
+  pages: Int!
+  disponible: Boolean!
+}
+\end{lstlisting}
+
+\textbf{3. Types racines \faTerminal} (Points d'entrée)
+\begin{lstlisting}[language=GraphQL]
+# Lire des donnees
+type Query {
+  livres: [Livre!]!
+}
+
+# Modifier des donnees
+type Mutation {
+  ajouterLivre(titre: String!): Livre!
+}
+
+# Recevoir en temps reel
+type Subscription {
+  nouveauLivre: Livre!
+}
+\end{lstlisting}
+
+\textbf{4. Types avancés \faPuzzlePiece}
+\begin{itemize}
+    \item \texttt{[Type]} : Liste \hfill Ex: \texttt{[String]}
+    \item \texttt{Type!} : Obligatoire \hfill Ex: \texttt{Int!}
+    \item \texttt{enum} : Choix fixés \hfill Ex: \texttt{enum Couleur { ROUGE VERT BLEU }}
+    \item \texttt{interface} : Structure commune \hfill Ex: \texttt{interface Produit { prix: Float! }}
+\end{itemize}
+
+\textbf{Exemple complet \faCode}
+\begin{lstlisting}[language=GraphQL]
+type Query {
+  produits: [Produit!]!
+}
+
+type Produit {
+  id: ID!
+  nom: String!
+  prix: Float!
+  enStock: Boolean!
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Avantages de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Précision des requêtes} : Les clients peuvent demander uniquement les champs dont ils ont besoin.
+    \item \textcolor{blue}{Un endpoint unique} : Simplifie la gestion des APIs, puisque toutes les opérations passent par un seul point de terminaison.
+    \item \textcolor{blue}{Performance optimisée} : Moins de surcharges de données et plus de flexibilité dans le traitement des informations.
+    \item \textcolor{blue}{Documentation intégrée} : GraphQL est auto-documenté, ce qui facilite la découverte des possibilités de l'API.
+\end{itemize}
+
+\subsection{Limites de GraphQL}
+\begin{itemize}
+    \item \textcolor{blue}{Complexité} : Il peut être complexe à configurer et à apprendre, notamment pour les grands schémas.
+    \item \textcolor{blue}{Cache difficile à gérer} : Contrairement aux APIs REST où le caching est plus intuitif, le cache dans GraphQL demande souvent une gestion sur mesure.
+\end{itemize}
+
+\section{Prérequis pour utiliser GraphQL sur Ubuntu}
+\subsection{Installation des outils nécessaires}
+Avant de commencer à utiliser GraphQL, vous devez installer certains outils sur votre machine Ubuntu. Voici les étapes à suivre :
+
+\begin{enumerate}
+    \item \textcolor{blue}{Node.js et npm} : GraphQL est souvent utilisé avec Node.js. Pour installer Node.js et npm (Node Package Manager), exécutez les commandes suivantes :
+    \begin{lstlisting}[language=bash ,style=custombash]
+    sudo apt update
+    sudo apt install nodejs npm
+    \end{lstlisting}
+
+    \item \textcolor{blue}{Éditeur de texte} : Vous aurez besoin d'un éditeur de texte pour écrire votre code. Vous pouvez utiliser \textcolor{blue}{Visual Studio Code} (VS Code) qui est très populaire parmi les développeurs. Pour installer VS Code :
+    \begin{lstlisting}[language=bash,style=custombash]
+    sudo snap install --classic code
+    \end{lstlisting}
+\end{enumerate}
+
+\subsection{Passons à la pratique ! \faRocket}
+Maintenant que tout est installé, nous allons créer un projet GraphQL simple. Suivez les étapes ci-dessous pour afficher "Hello World" avec GraphQL.
+\title{Création d'un projet GraphQL}
+\author{}
+\date{}
+\maketitle
+
+\section{Configuration de l'environnement de travail}
+Maintenant que tout est installé, nous allons créer un projet GraphQL simple. Suivez les étapes ci-dessous pour afficher "Hello World" avec GraphQL. Voici à quoi ressemblerait notre structure :
+
+\begin{center}
+\includegraphics[width=0.6\textwidth]{i.png}
+\end{center}
+
+\section{Initialisation du projet}
+
+\subsection{Commandes de base et explication}
+
+\begin{lstlisting}[language=GraphQL,style=custombash]
+mkdir test              // Creation du dossier du projet
+cd test                 // Acces au dossier du projet
+npm init -y             // Initialisation dun projet Node.js
+\end{lstlisting}
+
+Après cette commande, vous aurez un fichier \texttt{package.json} qui ressemblera à ceci :
+
+\begin{center}
+\includegraphics[width=1\textwidth]{c.png}
+\end{center}
+
+\section{Modification du fichier \texttt{package.json}}
+Maintenant, vous devez changer le type de module de \texttt{commonjs} en \texttt{module}, car c'est ce que nous allons utiliser dans notre projet. Modifiez la valeur de \texttt{type} de \texttt{commonjs} en \texttt{module}.
+
+\begin{center}
+\includegraphics[width=0.8\textwidth]{m.png}
+\end{center}
+
+\section{Installation des dépendances}
+
+\subsection{Commandes de base et explication}
+Acceder à  votre terminal et executez les commandes suivantes
+\begin{lstlisting}[style=custombash]
+npm install @apollo/server graphql  // Installation des dependances
+npm install graphql-tag  // Installation de la bibliotheque graphql-tag
+npm install nodemon // pour permettre le redemarrage a chaud du serveur
+\end{lstlisting}
+
+Dans le fichier \texttt{package.json}, au niveau de la section script, mettez virgule(,) et ajoutez la ligne suivante :
+
+\begin{lstlisting}[style=custombash]
+"dev": "nodemon index.js"
+\end{lstlisting}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{n.png}
+\end{center}
+
+\section{Ajout du code dans \texttt{index.js}}
+\begin{lstlisting}[language=JavaScript ]
+import { ApolloServer } from '@apollo/server';
+import { gql } from 'graphql-tag';
+import { startStandaloneServer } from "@apollo/server/standalone"; 
+
+// Definition du schema GraphQL
+const typeDefs = gql`
+  type Query {
+    hello: String
+  }
+`;
+
+// Resolveur pour le schema
+const resolvers = {
+  Query: {
+    hello: () => 'Hello, world!',
+  },
+};
+
+// Creer une instance d'ApolloServer
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+
+// Lancer le serveur en utilisant startStandaloneServer
+startStandaloneServer(server, {
+  listen: { port: 4000 }
+}).then(({ url }) => {
+  console.log(`Server ready at ${url}`);
+});
+
+\end{lstlisting}
+
+
+Voici une explication détaillée du code index.js:
+
+
+\begin{tcolorbox}[
+    title=Explication du code Apollo Server,
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    fonttitle=\bfseries]
+    
+\textbf{Structure du code en 5 parties :}
+
+\begin{enumerate}
+    \item \textbf{Importations des dépendances}:
+    \begin{itemize}
+        \item \texttt{ApolloServer} : Framework GraphQL
+        \item \texttt{gql} : Parseur de schéma GraphQL
+        \item \texttt{startStandaloneServer} : Serveur HTTP intégré
+    \end{itemize}
+    
+    \item \textbf{Définition du schéma GraphQL} (typeDefs) :
+    \begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+    type Query {
+        hello: String  #Expose une requete 'hello'
+    }
+    \end{lstlisting}
+    
+    \item \textbf{Résolveurs (resolvers)} :
+    \begin{itemize}
+        \item Implémente la logique de la requête
+        \item Renvoie toujours "Hello, world!"
+    \end{itemize}
+    
+    \item \textbf{Création du serveur} :
+    \begin{itemize}
+        \item Combine schéma et résolveurs
+        \item Configuration minimale
+    \end{itemize}
+    
+    \item \textbf{Lancement du serveur} :
+    \begin{itemize}
+        \item Port 4000 par défaut
+        \item Message de confirmation au démarrage
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Fonctionnement global :} \\
+Le serveur répondra à une requête GraphQL \texttt{\{ hello \}} avec la chaîne "Hello, world!".
+\end{tcolorbox}
+\section{Exécution du serveur}
+
+Dans votre terminal, exécutez la commande suivante pour démarrer le serveur :
+
+\begin{lstlisting}[style=custombash]
+npm run dev
+\end{lstlisting}
+
+Vous devriez voir le message suivant dans votre terminal :
+
+\begin{center}
+\includegraphics[width=1\textwidth]{d.png}
+\end{center}
+
+Si vous obtenez ce résultat, cela signifie que vous avez bien effectué les tests. Ensuite, appuyez sur \texttt{Ctrl} puis cliquez sur le endpoint pour afficher votre requête. Vous n'avez qu'à taper dans la partie opération exactement ce qui est affiché sur l'image suivante pour obtenir le résultat :
+
+\begin{center}
+\includegraphics[width=1\textwidth]{tt.png}
+\end{center}
+
+\section{Test pratique}
+\subsection{Ajout de nouveaux types et requêtes \faMagic\ \faCalculator}
+
+\textbf{\faSuperpowers~ Défi mathématique !} \\ 
+\emph{"Et si on équipait notre API de super circuits intégrés ?} \\ 
+\emph{Transformons ce serveur en calculatrice GraphQL ! \faRocket\ \faDivide}
+
+\begin{tcolorbox}[ colback=blue!5!white,
+    colframe=blue!75!black,]
+\textbf{\faLightbulbO~ Mission :}
+\begin{itemize}
+    \item \faCode~ Créer une requête \texttt{calcul} pour additionner deux nombres
+    \item \faPuzzlePiece~ Déclarer les types GraphQL appropriés
+    \item \faCogs~ Résolveur effectuant \texttt{a + b}
+  
+\end{itemize}
+\end{tcolorbox}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{ca.png} \\
+\footnotesize{\textit{\faCamera~ Capture du code modifié}}
+\end{center}
+
+\begin{tcolorbox}[ colback=blue!5!white,
+    colframe=blue!75!black,]
+
+\begin{itemize}
+    \item[\faCheckCircle] Type Query avec \texttt{calcul(a: Int!, b: Int!): Int!}
+    \item[\faCheckCircle] Résolveur qui manipule \texttt{a} et \texttt{b}
+    \item[\faCheckCircle] Test avec \texttt{\{ calcul(a: 9, b: 1) \}}
+\end{itemize}
+\end{tcolorbox}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{g.png} \\
+\footnotesize{\textit{\faThumbsUp~ Résultat attendu : 10(pas 57 !) \faSmileO}}
+\end{center}
+
+\textbf{\faCommentingO~ Astuce :} \\
+\emph{"Si votre code retourne 57...} \\
+\emph{C'est un concaténateur masqué ! \faSearch\ \faGrin}
+
+
+Reprennons notre serieux et comprenons le code suivant, cela nous est très important:
+\begin{tcolorbox}[
+    title={\faCode\ Explication du résolveur GraphQL},
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    width=\dimexpr\textwidth+3cm\relax, % Élargissement horizontal
+    enlarge left by=-1.5cm,            % Débordement contrôlé à gauche
+    enlarge right by=-1.5cm,           % Débordement contrôlé à droite
+    height fixed for=all,              % Expansion verticale automatique
+    enlarge top initially by=5mm,      % Espace supplémentaire en haut
+    enlarge bottom finally by=5mm,     % Espace supplémentaire en bas
+    breakable,
+    enhanced jigsaw,
+    beforeafter skip=15pt,             % Espace avant/après le cadre
+    boxsep=10pt,                       % Marge intérieure augmentée
+    left=15pt,                         % Marge gauche interne
+    right=15pt                         % Marge droite interne
+]
+
+\section*{Structure du code}
+\textbf{1. Schéma GraphQL :}
+\begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+type Query {
+  "Additionne deux entiers (a + b)"
+  calcul(a: Int!, b: Int): Int
+}
+\end{lstlisting}
+
+\begin{itemize}
+    \item \textcolor{blue}{\texttt{Int!}} : Paramètre obligatoire
+    \item \textcolor{blue}{\texttt{Int}} : Peut retourner \texttt{null}
+\end{itemize}
+
+\vspace{5mm}
+\textbf{2. Résolveur JavaScript :}
+\begin{lstlisting}[language=JavaScript,escapechar=@]
+const resolvers = {
+// 1. Requette
+  Query: {
+    calcul: (_, args) => { 
+     
+      // 2. Calcul
+      const result = args.a + args.b;
+      
+      // 3. Retour
+      return result;
+    }
+  }
+};
+\end{lstlisting}
+\section*{\faLightbulbO\ Explications clés}
+\begin{tabular}{ll}
+    \faArrowCircleRight\ \textbf{\_} & Placeholder pour l'objet parent \\
+    \faArrowCircleRight\ \textbf{args} & \texttt{\{ a: 9, b: 1 \}} (arguments) \\
+
+    \faMagic\ \textbf{Retour} & Doit matcher le type GraphQL \\
+\end{tabular}
+
+\section*{\faPlayCircle\ Flux d'exécution}
+\begin{enumerate}
+    \item Requête client : \texttt{query \{ calcul(a:9, b:1) \}}
+    \item Vérification des types par GraphQL
+    \item Exécution du résolveur si valide
+    \item Retour : \texttt{\{ "data": \{ "calcul": 10 \} \}}
+\end{enumerate}
+
+\end{tcolorbox}
+Alors maintenant, nous allons tester les types objets.
+
+Pour commencer, les types objets sont des types personnalisés. 
+
+Voici ce que nous allons ajouter dans le fichier \texttt{index}:
+
+Nous allons définir une tâche sur laquelle nous allons effectuer un petit CRUD. Voici les étapes à suivre :
+
+\section*{1. Définition du type \texttt{Tache}}
+
+Pour définir le type, voici ce que nous allons ajouter dans le \texttt{typedef} :
+
+\begin{lstlisting}[language=JavaScript]
+type Tache {
+  id: ID!
+  titre: String!
+  terminer: Boolean!
+}
+\end{lstlisting}
+
+\section*{2. Définition de la requête}
+
+Ensuite, nous allons définir la requête pour obtenir la liste des tâches :
+
+\begin{lstlisting}[language=JavaScript]
+taches: [Tache]
+\end{lstlisting}
+
+\section*{3. Définition du resolveur}
+
+Enfin, nous allons définir le resolveur qui va gérer la requête des tâches :
+
+\begin{lstlisting}[language=JavaScript]
+taches: () => tasks
+\end{lstlisting}
+
+\section*{4. Exemple de données}
+
+Voici un exemple de données dans une liste pour effectuer les tests :
+
+\begin{lstlisting}[language=JavaScript]
+let tasks = [
+  { id: 1, titre: "Apprendre GraphQL", terminer: false },
+  { id: 2, titre: "Faire les courses", terminer: true }
+];
+\end{lstlisting}
+
+Ces étapes vous permettront de définir et d'utiliser des types objets dans GraphQL pour effectuer un CRUD basique. 
+
+Votre fichier \textbf{index.js} devrait ressembler à ceci 
+
+\begin{lstlisting}[language=JavaScript]
+import { ApolloServer } from '@apollo/server';
+import { gql } from 'graphql-tag';
+import { startStandaloneServer } from "@apollo/server/standalone"; 
+
+// Définition du schéma GraphQL
+const typeDefs = gql`
+  type Tache {
+    id: ID!
+    titre: String!
+    terminer: Boolean!
+  }
+
+  type Query {
+    hello: String
+    calcul(a: Int!, b: Int!): Int
+    taches: [Tache]
+  }
+`;
+
+let tasks = [
+  { id: 1, titre: "Apprendre GraphQL", terminer: false },
+  { id: 2, titre: "Faire les courses", terminer: true }
+];
+
+// Resolvants pour le schéma
+const resolvers = {
+  Query: {
+    hello: () => 'Hello, world!',
+    calcul: (_, args) => args.a + args.b,
+    taches: () => tasks
+  }
+};
+
+// Creer une instance d'ApolloServer
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+
+// Lancer le serveur en utilisant startStandaloneServer
+startStandaloneServer(server, {
+  listen: { port: 4001 }
+}).then(({ url }) => {
+  console.log(`Server ready at ${url}`);
+});
+\end{lstlisting}
+
+Maintenant pour tester retourner sur le playGround et faite :
+
+
+\begin{center}
+\includegraphics[width=1\textwidth]{test1.png}
+\end{center}
+\begin{center}
+\includegraphics[width=1\textwidth]{test3.png}
+\end{center}
+\vspace{1cm}
+\noindent \textbf{Ce qui rend GraphQL \underline{si puissant} ?} \\  
+\emph{(On vous l'avait déjà expliqué, mais un rappel est toujours utile)} \\[0.3em]  
+Avec GraphQL, \textbf{personnalisez à la volée} les données affichées ! \\  
+ Plus de surcharge, place à la précision \\  
+\textbf{Vous décidez des champs}, rien que ceux dont vous avez besoin \\  
+\emph{Exactement ce que vous voulez, rien de plus} \\[0.2em]  
+{\footnotesize \textit{(Une flexibilité que REST ne peut égaler !)}}  \\
+
+\vspace{1cm}
+Maintenant , faisons la mise à jour , la creation et la supression, nous pourrons maintenant manipuler notre  type \textbf{Mutation}
+
+Pour se faire, nous allons utiliser le type \textbf{Tache} déjà défini , puis d'abord declarer la mutation apres cela nou allons de definir le corps de la mutation dans le resolvers .
+Voici ce qu'il faut faire:
+
+  \begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+    
+  type Tache {
+    id: ID!
+    titre: String!
+    terminer: Boolean!
+  }
+\end{lstlisting}
+
+Declarer la mutation
+  \begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+    
+  type Mutation{
+    ajouterTache(titre: String!, terminer: Boolean!): Tache
+  
+  }
+\end{lstlisting}
+Apres definir le corps de la mutation dans le resolveur 
+\newpage
+  \begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+    
+ Mutation:{
+    ajouterTache: (_, {titre, terminer}) => {
+    const nouvelleTache = {
+      id: tache.length + 1,
+      titre,
+      terminer
+    };
+    tache.push(nouvelleTache);
+    return nouvelleTache;
+    }
+  }
+
+\end{lstlisting}
+Si vous faite bien ce qui a été dit ; Voici la manière dont votre fichier index devrait etre 
+  \begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small][style=custombash]
+
+import { ApolloServer } from '@apollo/server';
+import { gql } from 'graphql-tag';
+import { startStandaloneServer } from "@apollo/server/standalone"; 
+
+// Définition du schéma GraphQL
+const typeDefs = gql`
+  type Tache {
+    id: ID!
+    titre: String!
+    terminer: Boolean!
+  }
+  type Query {
+    hello: String
+    calcul(a: Int!, b: Int!): Int
+    taches: [Tache]
+  }
+  type Mutation{
+    ajouterTache(titre: String!, terminer: Boolean!): Tache
+  }
+`;
+let taches = [
+  { id: 1, titre: "Apprendre GraphQL", terminer: false },
+  { id: 2, titre: "Faire les courses", terminer: true }
+];
+// Resolvants pour le schema
+const resolvers = {
+  Query: {
+    hello: () => 'Hello, world!',
+    calcul: (_, args) => args.a + args.b,   
+  taches :()=> taches
+  },
+  Mutation:{
+    ajouterTache: (_, {titre, terminer}) => {
+    const nouvelleTache = {
+      id: taches.length + 1,
+      titre,
+      terminer
+    };
+    taches.push(nouvelleTache);
+    return nouvelleTache;
+    }
+  }
+};
+// Creer une instance d'ApolloServer
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+});
+// Lancer le serveur en utilisant startStandaloneServer
+startStandaloneServer(server, {
+  listen: { port: 4001 }
+}).then(({ url }) => {
+  console.log(`Server ready at ${url}`);
+});
+\end{lstlisting}\\
+
+Maintenant que nous avons terminé la définition de notre mutation, pourquoi ne pas tester tout ça ? Il est important de noter que GraphQL ne s'exécute pas uniquement dans le Playground, mais aussi dans des clients HTTP comme Postman. Voici comment vous pouvez tester la création d'une tâche dans Postman.
+
+D'abord, téléchargez Postman en suivant ce lien : \href{https://www.postman.com/downloads/}{Télécharger Postman}.
+Une fois l'installation terminée, si vous ne l'avez pas encore configuré, voici comment procéder :
+
+\begin{center} \includegraphics[width=1\textwidth]{de.png} \end{center}
+
+Ensuite, en haut à gauche, là où il est écrit New et Import, cliquez sur New pour ouvrir un nouvel onglet. Sélectionnez ensuite GraphQL. Voici l'illustration :
+
+\begin{center} \includegraphics[width=1\textwidth]{gr.png} \end{center}
+
+Une fois que vous avez cliqué dessus, entrez l'URL de votre endpoint unique en haut, comme montré ci-dessous. N'oubliez pas de remplacer l'exemple par le vôtre.
+
+\begin{center} \includegraphics[width=1\textwidth]{t.png} \end{center}
+Maintenant que tout est prêt, voici comment tester la création d'une tâche dans Postman. Une fois que vous accédez à Postman, vous verrez la liste de vos requêtes et mutations, comme montré ci-dessous :
+
+\begin{center} \includegraphics[width=1\textwidth]{testt.png} \end{center}
+
+Cliquez sur le nom de votre mutation. Vous aurez alors des champs pour saisir les données nécessaires. Voici l'avantage d'utiliser Postman par rapport au Playground.
+
+\begin{center} \includegraphics[width=1\textwidth]{ju.png} \end{center}
+
+Par défaut, tous les champs sont sélectionnés, ce qui signifie que tous seront retournés après l'envoi des données. Ne vous inquiétez pas, lors de la définition de la mutation en GraphQL, nous avons précisé le type de retour. Vous pouvez donc choisir les champs que vous souhaitez recevoir. En cliquant sur Query, voici le résultat que vous obtiendrez :
+
+\begin{center} \includegraphics[width=1\textwidth]{res.png} \end{center}
+ À vous de manipulez pour plus de compréhension. 
+
+\section{Fin de la section de test} Félicitations ! \faTrophy Vous avez réussi à créer votre première API GraphQL et à effectuer des tests pratiques. Dans la prochaine section, nous explorerons des concepts plus avancés, tels que les souscriptions, l'intégration avec une base de données, et bien d'autres sujets passionnants \faSmileO.
+
+
+\section{Projet réaliste : Gestion des contacts avec Prisma et Flutter}
+\subsection{Concept}
+Maintenant que vous avez une compréhension de base de GraphQL, nous allons passer à un projet plus réaliste. Nous allons créer une API GraphQL pour gérer une liste de contacts, en utilisant Prisma comme ORM pour interagir avec une base de données,  JWT pour la gestion de l'authentification. Plus tard, nous consommerons cette API.
+
+\subsection{Restructuration du projet  \faFolder\  }
+
+
+Voici à quoi doit ressembler la structure du projet :
+
+
+\noindent
+%\textbf{\faFolder Organisation du projet} \\
+Reproduisez minutieusement l'architecture suivante pour structurer proprement notre projet.
+
+\vspace{0.5cm}
+\begin{center}
+    \includegraphics[width=0.5\textwidth]{modi/ty.png}
+\end{center}
+
+\noindent
+\textbf{\faFolder Dossiers } \\
+Les dossiers créés  seront  :
+\begin{itemize}
+    \item \textbf{resolvers}
+    \item \textbf{typedefs}
+    \item \textbf{auth}
+    \item \textbf{old\_index}
+\end{itemize}
+
+\vspace{0.5cm}
+Creer les fichiers se trouvant sur la capture respectivement dans chaque dossier.
+
+\noindent
+\textbf{\faFolder Sauvegarde de l'ancien index} \\
+Le dossier \textbf{old\_index} contiendra une copie de notre fichier \texttt{index.js}. Ce dossier servira à conserver les tests effectués avant la refonte du projet.
+
+\vspace{0.5cm}
+
+\noindent
+\textbf{\faFolder Nettoyage du fichier principal} \\
+Le fichier \textbf{index.js}, situé à la racine du projet, doit être vidé pour repartir sur une base propre et bien structurée.
+
+\vspace{0.5cm}
+\noindent
+
+
+
+Maintenant tout est en ordre nous allons installer \textbf{prisma}, une ORM qui va permettre l'interaction avec la base de donees .mais nous repelloms que vous pouvez utiliser autre ORM de votre choix telques  \textbf{Postgraphile} \textbf{Hasura}
+
+Passons donc à la configuration de prisma.
+
+
+
+\section{Configuration de Prisma en ligne de commande}
+
+\begin{itemize}
+    \item \textbf{Installation de Prisma et de son client}
+    \begin{lstlisting}[style=custombash]
+    npm install prisma --save-dev
+    npm install @prisma/client
+    \end{lstlisting}
+
+    \item \textbf{Initialisation de Prisma}
+    \begin{lstlisting}[style=custombash]
+    npx prisma init
+    \end{lstlisting}
+
+
+    \end{lstlisting}
+\end{itemize}
+Si vous exécutez la commande \textbf{npx prisma init}, un dossier \textbf{prisma} apparaîtra, contenant notamment un fichier  \textbf{.env}. Ce fichier de configuration vous permettra de définir les paramètres de votre base de données, ainsi que différentes variables d’environnement.
+
+En accédant au répertoire \textbf{prisma} , vous y trouverez un fichier\textbf{schema.prisma} . C’est dans ce fichier que nous allons définir le schéma de la base de données. \\\\
+Voici à quoi devrait ressembler notre aborescence à présent.
+\vspace{1cm}
+
+\begin{center} \includegraphics[width=0.5\textwidth]{modi/hh.png} \end{center}
+Nous allons accéder au fichier \textbf{.env} afin d’effectuer les configurations nécessaires.
+À la base, voici à quoi ressemble le contenu du fichier \textbf{.env}
+\begin{center} \includegraphics[width=0.8\textwidth]{en.png} \end{center}
+
+Vous devez remplacer ces données par les informations correctes, à savoir le nom d'utilisateur, le mot de passe et le nom de la base de données. Je rappelle que dans notre cas, nous utilisons \texttt{PostgreSQL}, mais vous pouvez opter pour \textbf{SQLite}, \textbf{MySQL}, \textbf{SQL Server}, \textbf{MongoDB}, \textbf{CockroachDB}, etc., selon votre choix. Voici comment nous avons effectué notre configuration.
+
+\begin{center} \includegraphics[width=0.8\textwidth]{pos.png} \end{center}
+Accédons au fichier \textbf{schema.prisma} et définissons notre schéma, à savoir \textbf{User} et \textbf{Contact}. Mais avant cela, voici l'architecture de base de Prisma.
+
+\begin{center} 
+    \includegraphics[width=0.8\textwidth]{pr.png} 
+\end{center}
+
+Voici la manière dont nous avons défini la structure de notre table.
+
+
+\begin{lstlisting}[language=prisma]
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String   
+  email     String    @unique 
+  password  String    
+  contacts  Contact[] 
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt 
+}
+
+model Contact {
+  id         Int       @id @default(autoincrement())
+  firstName  String   
+  lastName   String    
+  phone      String    
+  email      String    @unique 
+  address    String?   
+  userId     Int       
+  user       User      @relation(fields: [userId], references: [id]) 
+  createdAt  DateTime  @default(now()) 
+  updatedAt  DateTime  @updatedAt
+}
+\end{lstlisting}
+
+Ensuite, exécutez la commande suivante pour créer la base de données et générer le client Prisma :
+
+    \item \textbf{ Création + application de migration}
+    \begin{lstlisting}[style=custombash]
+    npx prisma migrate dev --name init
+    \end{lstlisting}
+    
+      \item \textbf{Génération de Prisma Client}
+    \begin{lstlisting}[style=custombash]
+    npx prisma generate
+    \end{lstlisting}
+
+    
+Apres ce la tapez cette commande pour explorer la base de donnees et ajouter les donner directement dans l'interface qu'offre prisma.
+    \item \textbf{Exploration de la base de données}
+    \begin{lstlisting}[style=custombash]
+    npx prisma studio
+    \end{lstlisting}
+
+
+Ou vous pouvez egalemnt  créer un fichier \textbf{dbPrisma.js} a la racine et met ce script à l'interieur pour nous generer quelques seeders pours nos differents tests.
+
+\begin{center} 
+    \includegraphics[width=0.8\textwidth]{modi/hhh.png} 
+\end{center}
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+async function main() {
+  const user = await prisma.user.create({
+    data: {
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+      password: 'securepassword123',  
+      contacts: {
+        create: [
+          {
+            firstName: 'Alice',
+            lastName: 'Smith',
+            phone: '123-456-7890',
+            email: 'alice.smith@example.com',
+            address: '123 Main St, Springfield',
+          },
+          {
+            firstName: 'Bob',
+            lastName: 'Johnson',
+            phone: '987-654-3210',
+            email: 'bob.johnson@example.com',
+            address: '456 Elm St, Springfield',
+          }
+        ]
+      }
+    }
+  });
+
+  console.log('Utilisateur cree :', user);
+}
+
+main()
+  .catch(e => {
+    throw e;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
+\end{lstlisting}
+Apres ce la tapez cette commande pour executer les données de test 
+    \item \textbf{Insertion des données}
+    \begin{lstlisting}[style=custombash]
+ node dbPrisma.js 
+    \end{lstlisting}
+
+    
+
+    
+Passons maintenant aux choses sérieuses. Comme cela a été mentionné à plusieurs reprises, en GraphQL, il est primordial de commencer par déclarer les types avant de se lancer dans la logique de l'API. Cette étape fondamentale permet de définir clairement la structure des données et de garantir que toutes les requêtes et mutations respectent un schéma précis. Une fois les types définis, nous pourrons ensuite aborder les fonctionnalités de l'API et la logique des résolveurs qui manipulent ces types.\\
+Definissons donc notre schema.  \\ Allez donc dans le fichier \textbf{schema/UserTypedef.graphql}
+
+
+
+\begin{lstlisting}[language=JavaScript]
+
+type User {
+  id:       ID!      
+  name:    String!   
+  email: String!   
+  password: String!
+  contacts:[Contact!]!   
+  createdAt: String!  
+  updatedAt: String!   
+}
+
+type Query {
+    users:[User]!
+}  updatedAt: String!   
+}
+ \end{lstlisting}
+\begin{center} 
+    \includegraphics[width=0.8\textwidth]{modi/u.png} 
+\end{center}
+et dans le ficher \textbf{ContactTypedef.gql} 
+
+\begin{lstlisting}[language=JavaScript]
+type Contact {
+  id:         ID!       
+  firstName:  String!   
+  lastName:   String!    
+  phone:      String!   
+  email:      String!   
+  address:    String!  
+  userId:     ID!       
+  user:       User!      
+  createdAt:  String! 
+  updatedAt:  String! 
+}
+type Query{
+    contacts: [Contact]!
+}
+}
+ \end{lstlisting}
+\begin{center} 
+    \includegraphics[width=0.8\textwidth]{modi/c.png} 
+\end{center}
+
+
+Maintenant que nous fini avec les \textbf{typesdef} , allons dans le resolvers. Il faut vraiment noter que graphQl est vraiment exigeant sur les types sans c'est type , il nous serait impossible de demarrer notre serveur , donc il faut declarer les types meme si nous n'allons pas encore dfinir le corprs dans le resolvers.\\ Accedons à notre fichier, \textbf{resolvers/UserResolver.js}, ceci fait nous allons juste declarer le resolveur qui affiche la liste de tous les tutilisateurs. Voici le contenu du fichier \textbf{UserResolver.js}
+
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+const userResolvers={
+    Query: {
+    users: async () =>{},
+    },
+};
+export default userResolvers;
+ \end{lstlisting}
+ Voici pour contact egalement.
+ 
+
+
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+const userResolvers={
+    Query: {
+    users: async () =>{},
+    },
+};
+export default userResolvers;
+ \end{lstlisting}
+
+
+
+
+
+
+Nous espérons que vous vous souvenez de la petite histoire de \textbf{gql} et \textbf{graphql}, un langage de requête révolutionnaire pour les API !  \faSmileO\\
+Maintenant que nous avons fini avec nos schemas.\\\\
+\begin{lstlisting}[language=JavaScript]
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from "@apollo/server/standalone"
+import gql from "graphql-tag"
+import fs from 'fs'
+import userResolvers from './resolveurs/UserResolver.js'
+import contactResolvers from './resolveurs/ContactResolver.js'
+
+const  typeDefs = gql(`
+  ${fs.readFileSync('typedefs/UserTypedef.gql','utf8')}
+  ${fs.readFileSync('typedefs/ContactTypedef.graphql','utf8')}
+  `)  
+  const resolvers = {
+    Query:{
+      ...userResolvers.Query,
+      ...contactResolvers.Query
+    },
+  }
+  const server = new ApolloServer(
+    { typeDefs, resolvers }
+  )
+startStandaloneServer(server,{
+  listen:4000, path:'/graphql'}).then(({url})=>{
+    console.log(`serveur demare sur ${url}`);
+    
+  })
+  
+ \end{lstlisting}
+
+\begin{tcolorbox}[
+    title={\faCode\ Explication du contenu de \textbf{index.js} },
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    width=\dimexpr\textwidth+3cm\relax, % Élargissement horizontal
+    enlarge left by=-1.5cm,            % Débordement contrôlé à gauche
+    enlarge right by=-1.5cm,           % Débordement contrôlé à droite
+    height fixed for=all,              % Expansion verticale automatique
+    enlarge top initially by=5mm,      % Espace supplémentaire en haut
+    enlarge bottom finally by=5mm,     % Espace supplémentaire en bas
+    breakable,
+    enhanced jigsaw,
+    beforeafter skip=15pt,             % Espace avant/après le cadre
+    boxsep=10pt,                       % Marge intérieure augmentée
+    left=15pt,                         % Marge gauche interne
+    right=15pt                         % Marge droite interne
+]
+
+\section*{Structure du code}
+\textbf{1. Importation :}
+\begin{lstlisting}[language=GraphQL,basicstyle=\ttfamily\small]
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from "@apollo/server/standalone"
+import gql from "graphql-tag"
+import fs from 'fs'
+import userResolvers from './resolveurs/UserResolver.js'
+import contactResolvers from './resolveurs/ContactResolver.js'
+\end{lstlisting}
+Ici nous faisons les importations , \\\\
+\textbf{ligne 1}
+Cette ligne importe le ApolloServer à partir du package @apollo/server. ApolloServer est une bibliothèque qui permet de configurer et de lancer un serveur GraphQL. Il est utilisé pour définir le schéma, les résolveurs, et exécuter les requêtes des clients.\\\\
+\textbf{ligne 2}
+Cette ligne importe la fonction startStandaloneServer à partir du module @apollo/server/standalone. .\\\\
+\textbf{ligne 3}
+Cette ligne importe gql de la bibliothèque graphql-tag. graphql-tag est un utilitaire qui permet d'annoter les requêtes GraphQL en JavaScript. \\\\\
+\textbf{ligne 4}
+
+Cette ligne importe le module fs de Node.js. fs est un module natif de Node.js qui permet de manipuler le système de fichiers (par exemple, lire, écrire, supprimer des fichiers). Cela peut être utilisé pour charger des fichiers comme des schémas GraphQL définis dans un fichier .graphql ou .gql.\\\\
+
+\textbf{ligne 5}
+
+Cette ligne importe les resolvers pour le type User depuis un fichier externe UserResolver.js. Les résolveurs sont des fonctions qui spécifient la logique d'exécution pour les différentes opérations de GraphQL (comme la récupération de données).\\\\
+\textbf{ligne 6}
+Cette ligne fais la même chose que la ligne 4 mais cette fois-ci c'est pour la table \textbf{Contact}\\\\
+
+\end{tcolorbox}
+\begin{tcolorbox}[
+    title={\faCode\ Explication du contenu de \textbf{index.js} },
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    width=\dimexpr\textwidth+3cm\relax, % Élargissement horizontal
+    enlarge left by=-1.5cm,            % Débordement contrôlé à gauche
+    enlarge right by=-1.5cm,           % Débordement contrôlé à droite
+    height fixed for=all,              % Expansion verticale automatique
+    enlarge top initially by=5mm,      % Espace supplémentaire en haut
+    enlarge bottom finally by=5mm,     % Espace supplémentaire en bas
+    breakable,
+    enhanced jigsaw,
+    beforeafter skip=15pt,             % Espace avant/après le cadre
+    boxsep=10pt,                       % Marge intérieure augmentée
+    left=15pt,                         % Marge gauche interne
+    right=15pt                         % Marge droite interne
+]
+
+\textbf{2. Lecture des typedef :}
+\begin{lstlisting}
+const  typeDefs = gql(`
+  ${fs.readFileSync('typedefs/UserTypedef.gql','utf8')}
+  ${fs.readFileSync('typedefs/ContactTypedef.graphql','utf8')}
+  `)  
+\end{lstlisting}
+
+Ici nous permettons la lecture des type definis  afin de le rendre accessible dans le fichier \textbf{index.js}, puisque qu'il le faut pour le demarrage du serveur 
+
+
+
+\textbf{3. Lecture des typedef :}
+\begin{lstlisting}
+  const resolvers = {
+    Query:{
+      ...userResolvers.Query,
+      ...contactResolvers.Query
+    },
+  }
+\end{lstlisting}
+...userResolvers.Query et ...contactResolvers.Query : Ces deux lignes utilisent l'opérateur spread pour prendre tous les résolveurs (fonctions de lecture) définis dans userResolvers.Query et contactResolvers.Query, et les "fusionner" dans un seul objet.
+
+Ce code est une façon de combiner plusieurs ensembles de résolveurs pour les rendre accessibles dans un seul objet Query.
+
+\textbf{4. Instanciation de  ApolloServer avec les argument typeDef et relovers:}
+
+\begin{lstlisting}
+  const server = new ApolloServer(
+    { typeDefs, resolvers }
+  )
+\end{lstlisting}
+
+\textbf{5. Instanciation de  ApolloServer avec les argument typeDef et relovers:}
+
+\begin{lstlisting}
+  const server = new ApolloServer(
+    { typeDefs, resolvers }
+  )
+\end{lstlisting}
+
+Ce code démarre un serveur Apollo qui écoute sur le port 4000 et expose l'API GraphQL à l'URL /graphql. Une fois le serveur démarré, il affiche l'URL dans la console pour indiquer où l'API est accessible.
+
+\end{tcolorbox}
+Enfin si vous avez suivit correctement toutes ces etapes et que vous retapez la commande \textbf{npm run dev} le serveur va demarrer correctement.\\\\
+
+À présent, nous allons afficher la liste des utilisateurs et des contacts depuis la base de données. Si vous avez bien suivi, vous avez probablement remarqué que nous avons défini, au niveau du typedef, la requête qui permet d'afficher l'ensemble des utilisateurs et des contacts. Il ne nous reste plus qu'à définir la logique dans le résolveur afin d'afficher les listes correspondantes de manière dynamique.
+
+\\\\
+Voici le contenu duu fichier \textbf{UserResolver.js}
+
+\begin{lstlisting}import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+const userResolvers={
+    Query: {
+    users: async () =>{
+         return await prisma.user.findMany
+        (
+            { include: { contacts: true } }
+        )
+        },
+    },
+};
+export default userResolvers;
+\end{lstlisting}
+
+et voici pour \textbf{ContactResolver}
+
+
+
+\begin{lstlisting}
+
+import { PrismaClient } from "@prisma/client";
+const contactResolvers = {
+    Query: {
+        contacts: async () => await Prisma.contact.findMany({ include: { user: true } }),
+    },
+};
+export default contactResolvers;
+
+\end{lstlisting}
+Nous pouvons allez dans postman pour faire le test.
+
+\begin{center} 
+    \includegraphics[width=0.8\textwidth]{y.png} 
+\end{center}
+Vous pouvez également tester avec les contacts. Vous remarquerez que Postman permet d'afficher les contacts associés à un utilisateur, ainsi que l'utilisateur auquel chaque contact est rattaché. Cela permet une navigation fluide entre les utilisateurs et leurs contacts, facilitant ainsi l'exploitation des relations entre ces entités.\\\\
+Maintenant nous allons afficher un contact specifique , comme d'habitude, nous allons definir la requette d'abord puis apres le resolveur. \\
+
+Voici la maniere dont nous avons définit la requette . 
+\begin{lstlisting}
+ contact(id: ID!): Contact!
+\end{lstlisting}
+Le fichier \textbf{typedefs/ContactTypedef.graphql} devrait ressembler à ceci:
+\begin{lstlisting}
+type Contact {
+  id:         ID!       
+  firstName:  String!   
+  lastName:   String!    
+  phone:      String!   
+  email:      String!   
+  address:    String!  
+  userId:     ID!       
+  user:       User!      
+  createdAt:  String! 
+  updatedAt:  String! 
+}
+type Query{
+    contacts: [Contact]!
+    contact(id: ID!): Contact!
+}
+\end{lstlisting}
+
+etn voici le resolveur:
+\begin{lstlisting}
+ contact: async(_, {id})=> await prisma.contact.findUnique({
+            where: {id: parseInt(id)},
+           include:  {user:true},
+        })
+\end{lstlisting}
+
+Le fichier \textbf{resolveurs/ContactResolver.js} devrait ressembler à ceci:
+\begin{lstlisting}
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+const contactResolvers = {
+    Query: {
+        contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+        
+        contact: async(_, {id})=> await prisma.contact.findUnique({
+            where: {id: parseInt(id)},
+           include:  {user:true},
+        })
+    },
+
+    Mutation:{
+
+    },
+};
+
+export default contactResolvers;
+
+\end{lstlisting}Si vous retournez dans Postman et actualisez l'interface, vous verrez qu'une nouvelle requête a été ajoutée. En cliquant dessus, un champ apparaîtra, vous permettant de saisir l'ID de l'utilisateur que vous souhaitez afficher. Après avoir inséré l'ID, les informations correspondantes s'afficheront.
+\begin{center} 
+    \includegraphics[width=1\textwidth]{id.png} 
+\end{center}
+
+\section{Nous allons aborder le concept de mutation (create, update, delete)}, toujour dans le fichier \textbf{typedefs/ContactTypedef.graphql}, ajoutez donc ce nouveau code.
+\begin{lstlisting}
+
+type Mutation {    
+  ajouterContact(firstName: String, lastName:String,phone:String, email:String, address:String, userId:String):Contact
+ }
+\end{lstlisting}
+Ce fichier doit maintenant ressebler a ceci
+\begin{lstlisting}[language=JavaScript]
+type Contact {
+  id:         ID!       
+  firstName:  String!   
+  lastName:   String!    
+  phone:      String!   
+  email:      String!   
+  address:    String!  
+  userId:     ID!       
+  user:       User!      
+  createdAt:  String! 
+  updatedAt:  String! 
+}
+
+type Query{
+    contacts: [Contact]!
+    contact(id: ID!): Contact!
+}
+
+type Mutation {    
+  ajouterContact(firstName: String, lastName:String,phone:String, email:String, address:String, userId:String):Contact
+ }
+
+\end{lstlisting}
+Si nous finissons, maintenant definissons le resolveur , voici le code.
+
+\begin{lstlisting}[language=JavaScript]
+   Mutation: {
+        ajouterContact: async (_, { firstName, lastName, phone, email, address, userId }) => {
+          const nouvoContact = await prisma.contact.create({
+            data: {
+              firstName,
+              lastName,
+              phone,
+              email,
+              address,
+              userId: parseInt(userId, 10)
+            }
+          });
+    
+          return nouvoContact; 
+        }
+      }
+};
+\end{lstlisting}
+Le fichier devrait ressembler a ceci 
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const contactResolvers = {
+    Query: {
+        contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+        contact: async(_, {id})=> await prisma.contact.findUnique({
+            where: {id: parseInt(id)},
+           include:  {user:true},
+        })
+    },
+
+    Mutation: {
+        ajouterContact: async (_, { firstName, lastName, phone, email, address, userId }) => {
+          const nouvoContact = await prisma.contact.create({
+            data: {
+              firstName,
+              lastName,
+              phone,
+              email,
+              address,
+              userId: parseInt(userId, 10)
+            }
+          });
+    
+          return nouvoContact; 
+        }
+      }
+};
+
+export default contactResolvers;
+
+\end{lstlisting}
+
+Voici un exemple de test.
+
+\begin{center} 
+    \includegraphics[width=1\textwidth]{uuu.png} 
+\end{center}
+\section*{Faisons la mise a jour }
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const contactResolvers = {
+    Query: {
+        contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+        contact: async(_, {id})=> await prisma.contact.findUnique({
+            where: {id: parseInt(id)},
+           include:  {user:true},
+        })
+    },
+
+    Mutation: {
+        ajouterContact: async (_, { firstName, lastName, phone, email, address, userId }) => {
+          const nouvoContact = await prisma.contact.create({
+            data: {
+              firstName,
+              lastName,
+              phone,
+              email,
+              address,
+              userId: parseInt(userId, 10)
+            }
+          });
+    
+          return nouvoContact; 
+        }
+      }
+};
+
+export default contactResolvers;
+
+\end{lstlisting}
+
+Voici la definition de mise a jour
+\begin{lstlisting}
+ modifierContact(id:ID, firstName: String, lastName:String,phone:String, email:String, address:String, userId:String):Contact
+
+\end{lstlisting}
+
+Maintenant voici le resolveur
+
+\begin{lstlisting}[language=JavaScript]
+
+  modifierContact: async (_, { id, firstName, lastName, phone, email, address }) => {
+          const contactIdInt = parseInt(id, 10);
+      
+            if (isNaN(contactIdInt)) {
+              throw new Error("L'ID doit être un nombre valide.");
+            }
+      
+            try {
+              const updatedContact = await prisma.contact.update({
+                where: {
+                  id: contactIdInt, 
+                },
+                data: {
+                  firstName: firstName || undefined,
+                  lastName: lastName || undefined,
+                  phone: phone || undefined,
+                  email: email || undefined,
+                  address: address || undefined,
+                },
+              });
+      
+              return updatedContact;
+            } catch (error) {
+              throw new Error("Erreur lors de la mise à jour du contact : " + error.message);
+            }
+          },
+\end{lstlisting}
+Voici le contenu de tout le fichier jusqua present 
+
+
+\begin{lstlisting}[language=JavaScript]
+
+ import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const contactResolvers = {
+    Query: {
+        contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+        contact: async(_, {id})=> await prisma.contact.findUnique({
+            where: {id: parseInt(id)},
+           include:  {user:true},
+        })
+    },
+
+    Mutation: {
+        ajouterContact: async (_, { firstName, lastName, phone, email, address, userId }) => {
+          const nouvoContact = await prisma.contact.create({
+            data: {
+              firstName,
+              lastName,
+              phone,
+              email,
+              address,
+              userId: parseInt(userId, 10)
+            }
+          });
+    
+          return nouvoContact; 
+        },
+      
+        modifierContact: async (_, { id, firstName, lastName, phone, email, address }) => {
+          const contactIdInt = parseInt(id, 10);
+      
+            if (isNaN(contactIdInt)) {
+              throw new Error("L'ID doit être un nombre valide.");
+            }
+      
+            try {
+              const updatedContact = await prisma.contact.update({
+                where: {
+                  id: contactIdInt, 
+                },
+                data: {
+                  firstName: firstName || undefined,
+                  lastName: lastName || undefined,
+                  phone: phone || undefined,
+                  email: email || undefined,
+                  address: address || undefined,
+                },
+              });
+      
+              return updatedContact;
+            } catch (error) {
+              throw new Error("Erreur lors de la mise à jour du contact : " + error.message);
+            }
+          },
+        },
+      };
+export default contactResolvers;
+\end{lstlisting}
+Vous pouvez faire les tests a votre guise.
+\section*{Suppression de contact}
+Pour supprimer un comtact , c'est toujours la meme procedure: on definit le schema la mutation comme telle 
+
+
+
+\begin{lstlisting}[language=JavaScript]
+  supprimerContact(id:ID):Boolean
+ \end{lstlisting}
+Voici a quoi devrait maintenant ressembler le fichier 
+
+
+
+
+\begin{lstlisting}[language=JavaScript]
+type Contact {
+  id:         ID!       
+  firstName:  String!   
+  lastName:   String!    
+  phone:      String!   
+  email:      String!   
+  address:    String!  
+  userId:     ID!       
+  user:       User!      
+  createdAt:  String! 
+  updatedAt:  String! 
+}
+
+type Query{
+    contacts: [Contact]!
+    contact(id: ID!): Contact!
+}
+
+ type Mutation {    
+  ajouterContact(firstName: String, lastName:String,phone:String, email:String, address:String, userId:String):Contact,
+  modifierContact(id:ID, firstName: String, lastName:String,phone:String, email:String, address:String, userId:String):Contact,
+  supprimerContact(id:ID):Boolean
+ }
+
+ \end{lstlisting}
+
+ensuite on definit le resolveur 
+
+
+\begin{lstlisting}[language=JavaScript]
+supprimerContact: async (_, { id }) => {
+      const contactIdInt = Number(id);
+
+      if (isNaN(contactIdInt)) {
+        throw new Error("L'ID doit etre un nombre valide.");
+      }
+
+      try {
+        const deletedContact = await prisma.contact.delete({
+          where: {
+            id: contactIdInt,
+          },
+        });
+
+        return true;
+      } catch (error) {
+        throw new Error("Erreur lors de la suppression du contact : " + error.message);
+      }
+    },
+    \end{lstlisting}
+
+Apres le fichier resolver devrait ressembler a ceci
+
+
+
+\begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+import { verifyToken } from '../Auth/AuthUtils.js'; 
+const contactResolvers = {
+  Query: {
+
+    contacts: async () => await prisma.contact.findMany({ include: { user: true } }),
+
+
+    contact: async (_, { id }) =>
+      await prisma.contact.findUnique({
+        where: { id: parseInt(id) },
+        include: { user: true },
+      }),
+  },
+
+  Mutation: {
+    ajouterContact: async (_, { firstName, lastName, phone, email, address, userId }) => {
+      const nouvoContact = await prisma.contact.create({
+        data: {
+          firstName,
+          lastName,
+          phone,
+          email,
+          address,
+          userId: parseInt(userId, 10),
+        },
+      });
+
+      return nouvoContact;
+    },
+
+    modifierContact: async (_, { id, firstName, lastName, phone, email, address }) => {
+      const contactIdInt = parseInt(id, 10);
+
+      if (isNaN(contactIdInt)) {
+        throw new Error("L'ID doit être un nombre valide.");
+      }
+
+      try {
+        const updatedContact = await prisma.contact.update({
+          where: {
+            id: contactIdInt,
+          },
+          data: {
+            firstName: firstName || undefined,
+            lastName: lastName || undefined,
+            phone: phone || undefined,
+            email: email || undefined,
+            address: address || undefined,
+          },
+        });
+
+        return updatedContact;
+      } catch (error) {
+        throw new Error("Erreur lors de la mise à jour du contact : " + error.message);
+      }
+    },
+
+    supprimerContact: async (_, { id }) => {
+      const contactIdInt = Number(id);
+
+      if (isNaN(contactIdInt)) {
+        throw new Error("L'ID doit être un nombre valide.");
+      }
+
+      try {
+        const deletedContact = await prisma.contact.delete({
+          where: {
+            id: contactIdInt,
+          },
+        });
+
+        return true;
+      } catch (error) {
+        throw new Error("Erreur lors de la suppression du contact : " + error.message);
+      }
+    },
+  },
+ 
+};
+
+export default contactResolvers;
+
+    \end{lstlisting}
+    Voici le resultat:
+    \begin{center} 
+    \includegraphics[width=1\textwidth]{sup.png} 
+\end{center}
+    \vspace{1cm}
+   
+\section{Implémentation de l'authentification avec JWT et BCRYPTJS}
+
+Pour implémenter un système d'authentification en utilisant GraphQL, voici le processus étape par étape :
+
+\subsection{Définition du Schéma GraphQL}
+Dans un premier temps, nous devons définir deux mutations dans notre schéma GraphQL :
+\begin{itemize}
+    \item \textbf{Mutation register} : Cette mutation permet à un utilisateur de s'enregistrer en fournissant un nom , un email et un mot de passe.
+    \item \textbf{Mutation login} : Cette mutation permet à un utilisateur de se connecter avec son email et son mot de passe.
+\end{itemize}
+Ces mutations retourneront un objet contenant un \textbf{token JWT} et les \textbf{informations de l'utilisateur}.
+
+\subsection{Modèle User}
+Le modèle \texttt{User} contient déja les champs suivants : \texttt{name}, \texttt{email} et \texttt{password}. 
+Nous allons \textbf{hacher} le mot de passe avant de le stocker dans la base de données. 
+Pour ce faire, nous utiliserons un module comme \texttt{bcryptjs} afin de sécuriser les mots de passe des utilisateurs.
+
+\subsection{Processus de la Mutation \texttt{register}}
+Lors de l'inscription, la mutation \texttt{register} devra effectuer plusieurs étapes :
+\begin{itemize}
+    \item Vérifier si un utilisateur avec le même \texttt{email} 
+    \item Si l'utilisateur n'existe pas, un nouvel utilisateur sera créé avec les informations fournies.
+    \item Le mot de passe de l'utilisateur sera \textbf{haché} à l'aide de \texttt{bcryptjs}.
+    \item Un \textbf{token JWT} sera généré pour l'utilisateur, afin qu'il puisse être utilisé dans les requêtes futures.
+    \item Le \textbf{token} et les informations de l'utilisateur (par exemple \texttt{id}, \texttt{email}) seront retournées en réponse.
+\end{itemize}
+
+\subsection{Processus de la Mutation \texttt{login}}
+Lors de la connexion, la mutation \texttt{login} devra suivre ces étapes :
+\begin{itemize}
+    \item Vérifier si l'utilisateur existe en recherchant par \texttt{email}.
+    \item Comparer le mot de passe fourni par l'utilisateur avec le mot de passe haché stocké dans la base de données en utilisant \texttt{bcryptjs}.
+    \item Si les mots de passe correspondent, un \textbf{token JWT} sera généré pour l'utilisateur et retourné.
+    \item En cas d'échec de l'authentification (mauvais mot de passe), une erreur sera renvoyée.
+\end{itemize}
+
+\subsection{Gestion du Token JWT}
+Le token JWT généré lors de l'inscription ou de la connexion contient les informations de l'utilisateur (par exemple, \texttt{id}) et une date d'expiration. 
+Ce \textbf{token JWT} est envoyé au client et doit être inclus dans les en-têtes des requêtes futures afin d'accéder aux ressources protégées. 
+Le token sera généralement placé dans l'en-tête \texttt{Authorization} des requêtes.
+
+\subsection{Sécurisation des Résolveurs}
+Afin de protéger certaines routes de l'application, un middleware sera utilisé pour vérifier la validité du token JWT. 
+Cela garantit que seules les requêtes contenant un token valide sont autorisées à accéder aux données sensibles ou à effectuer certaines actions sur le serveur.
+
+\subsection{Résumé du Processus}
+En résumé, voici les principales étapes de l'implémentation de l'authentification :
+\begin{itemize}
+    \item Création des mutations \texttt{register} et \texttt{login} dans le schéma GraphQL.
+    \item Hachage des mots de passe avec \texttt{bcryptjs}.
+    \item Génération d'un \textbf{token JWT} lors de l'inscription et de la connexion.
+    \item Vérification du token JWT dans les requêtes futures pour sécuriser les ressources.
+\end{itemize}
+
+Ainsi, ce processus permet de mettre en place une authentification sécurisée dans une application GraphQL en utilisant les mutations \texttt{register} et \texttt{login}, avec un système de gestion des tokens JWT pour l'accès aux ressources protégées.
+
+
+Maintenant que tout est bien expliqué et détaillé , nous allons commencer par maniser cela:
+
+Pour se faire, nous allons d'abord l'installer  avec la commande :
+
+    \begin{lstlisting}[style=custombash]
+ npm install jsonwebtoken
+    \end{lstlisting}
+
+
+   \item \textbf{Cryptage du mot de passe pour des raisons de securites}
+    \begin{lstlisting}[style=custombash]
+npm install bcryptjs
+    \end{lstlisting}
+
+Comme dit allons creer les mutation login et register mais avant tout definissons le type personnalise \textbf{AuthPayload} pour gérer la réponse d'authentification après une opération de connexion ou d'inscription.
+
+
+
+\begin{lstlisting}[language=JavaScript]
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Mutation {
+  register(name: String!, email: String!, password: String!): AuthPayload!
+  login(email: String!, password: String!): AuthPayload!
+}
+    \end{lstlisting}
+Le fichier \textbf{typedefs/UserTypedef.gql } devrait ressembler a ceci:
+
+
+\begin{lstlisting}[language=JavaScript]
+
+type User {
+  id:       ID!      
+  name:    String!   
+  email: String!   
+  password: String!
+  contacts:[Contact!]!   
+  createdAt: String!  
+  updatedAt: String!   
+}
+
+type Query {
+    users:[User]!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type Mutation {
+
+  register(name: String!, email: String!, password: String!): AuthPayload!
+
+
+  login(email: String!, password: String!): AuthPayload!
+}
+
+    \end{lstlisting}
+    
+    Maintenant que cela est fait, nous allons nous attaquer au dossier \textbf{Auth}, que nous n'avons pas encore modifié jusqu'à présent. Bien que ce ne soit pas absolument nécessaire, pour une meilleure organisation et cohérence, il est conseillé de renommer la lettre \textbf{A}, qui était en majuscule, en \textbf{a} afin de correspondre aux autres noms de dossiers.
+
+Ensuite, le fichier \textbf{Auth.js} que nous avons créé dans ce dossier devra être renommé en \textbf{AuthMiddleware.js}. Enfin, il sera nécessaire d'ajouter un nouveau fichier, intitulé \textbf{AuthUtils.js}.
+
+Voici un apercu:
+   \begin{center} 
+    \includegraphics[width=0.7\textwidth]{aaa} 
+\end{center}
+
+Voici le contenu de  \textbf{AuthUtils.js}
+
+
+\begin{lstlisting}[language=JavaScript]
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const SECRET_KEY = process.env.JWT_SECRET || "";
+
+// Hashage du mot de passe
+export const hashPassword = async (password) => {
+  return await bcrypt.hash(password, 10);
+};
+
+// Vérification du mot de passe
+export const verifyPassword = async (password, hashedPassword) => {
+  return await bcrypt.compare(password, hashedPassword);
+};
+
+// Génération du token JWT
+export const generateToken = (user) => {
+  return jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: "1h" });
+};
+
+// Vérification du token JWT
+export const verifyToken = (token) => {
+  try {
+    return jwt.verify(token, SECRET_KEY);
+  } catch (error) {
+    return null;
+  }
+};
+    \end{lstlisting}
+    Voici le contenu de  \textbf{AuthMiddleware.js}
+    
+    \begin{lstlisting}[language=JavaScript]
+
+import { verifyToken } from "./AuthUtils.js";
+
+export const authMiddleware = (resolver) => async (parent, args, context, info) => {
+  const token = context.req.headers.authorization || "";
+  
+  // Vérifier si le token est valide
+  const user = verifyToken(token.replace("Bearer ", ""));
+  
+  if (!user) throw new Error("Non authentifié !");
+  
+  // Ajouter l'utilisateur au contexte pour les résolveurs
+  context.user = user;
+  
+  return resolver(parent, args, context, info);
+};
+
+ \end{lstlisting}
+\subsection{Arguments des Résolveurs GraphQL }
+Cette fonction veut permettre d'expliquer le pourquoi cette fois ci le resolveur a pris 4 argument maintenant.
+Les résolveurs en GraphQL acceptent quatre arguments principaux :
+
+\begin{itemize}
+    \item \textbf{parent} : 
+    Ce paramètre représente l'objet renvoyé par le résolveur du niveau supérieur. Pour la première requête, ce paramètre est généralement \texttt{undefined} ou \texttt{null}. Dans les mutations ou les résolveurs imbriqués, il contient le résultat de l'appel précédent.
+    
+    \item \textbf{args} : 
+    Cet argument contient les arguments envoyés par le client dans la requête. Par exemple, si la requête demande un utilisateur avec un \texttt{id}, l'argument \texttt{args} contiendra cet \texttt{id} : \{ \texttt{id: 1} \}. C'est grâce à cet argument que le résolveur sait quelles données doivent être récupérées ou modifiées.
+    
+    \item \textbf{context} : 
+    Le contexte est un objet partagé à travers toute la requête, utilisé pour passer des informations globales comme l'utilisateur authentifié, les paramètres de session, ou d'autres valeurs importantes. Cela permet aux résolveurs d'accéder à ces données sans les passer explicitement dans chaque appel.
+    
+    \item \textbf{info} : 
+    Cet argument contient des informations sur la requête en cours, telles que les champs demandés et le schéma de la requête. Il est généralement utilisé pour des opérations avancées comme la gestion de la sécurité ou le suivi des requêtes.
+\end{itemize}\\\\
+Apres avoir definit le schema passons au resolvers\\\\
+
+
+
+
+    \begin{lstlisting}[language=JavaScript]
+ Mutation: {
+        // Inscription d'un utilisateur
+        register: async (_, { name, email, password }) => {
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser) throw new Error("Email déjà utilisé !");
+            
+            const hashedPassword = await hashPassword(password);
+            const user = await prisma.user.create({
+              data: { name, email, password: hashedPassword },
+            });
+      
+            const token = generateToken(user);
+      
+            return { token, user };
+          },
+      
+          // Connexion d'un utilisateur
+          login: async (_, { email, password }) => {
+            const user = await prisma.user.findUnique({ where: { email } });
+            if (!user) throw new Error("Utilisateur non trouvé");
+      
+            const valid = await verifyPassword(password, user.password);
+            if (!valid) throw new Error("Mot de passe incorrect");
+      
+            const token = generateToken(user);
+      
+            return { token, user };
+          },
+        }
+ \end{lstlisting}
+ Le fichier \textbf{resolvers/UserResolvers.js} apres ajout du code du resolver devrait ressembler a ceci
+   \begin{lstlisting}[language=JavaScript]
+import { PrismaClient } from "@prisma/client";
+import { hashPassword, verifyPassword, generateToken } from "../Auth/AuthUtils.js";
+const prisma = new PrismaClient();
+
+const userResolvers={
+    Query: {
+    users: async () =>{
+         return await prisma.user.findMany
+        (
+            { include: { contacts: true } }
+        )
+        
+        },
+    },
+
+    Mutation: {
+        // Inscription d'un utilisateur
+        register: async (_, { name, email, password }) => {
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser) throw new Error("Email déjà utilisé !");
+            
+            const hashedPassword = await hashPassword(password);
+            const user = await prisma.user.create({
+              data: { name, email, password: hashedPassword },
+            });
+      
+            const token = generateToken(user);
+      
+            return { token, user };
+          },
+      
+          // Connexion d'un utilisateur
+          login: async (_, { email, password }) => {
+            const user = await prisma.user.findUnique({ where: { email } });
+            if (!user) throw new Error("Utilisateur non trouvé");
+      
+            const valid = await verifyPassword(password, user.password);
+            if (!valid) throw new Error("Mot de passe incorrect");
+      
+            const token = generateToken(user);
+      
+            return { token, user };
+          },
+        }    
+};
+export default userResolvers;
+ \end{lstlisting}
+Apres la definition du resolvers, Voici comment nous devrons adpter notre index, maintenant pour crrer l'instance d'apollo server il faut ajouter en plus de typedefs, et resolver ajouter \textbf{Context} car le context les donnees comme:\\
+Informations d'authentification : Par exemple, l'ID de l'utilisateur ou le rôle de l'utilisateur, extrait du token JWT.\\\\
+Données de la requête : Comme les en-têtes, les cookies, ou toute autre donnée associée à la requête HTTP\\\\
+Accès aux services externes : Par exemple, une instance de base de données, un client API, ou des fonctions utilitaires.\\
+\Voici le contenu de index:
+
+
+\begin{lstlisting}[language=JavaScript]
+
+
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import gql from "graphql-tag";
+import fs from 'fs';
+import userResolvers from './resolveurs/UserResolver.js';
+import contactResolvers from './resolveurs/ContactResolver.js';
+import { verifyToken , generateToken} from './Auth/AuthUtils.js'; // Import de la fonction de vérification du token
+
+import dotenv from 'dotenv';
+dotenv.config();
+// Charger les typedefs à partir des fichiers externes
+const typeDefs = gql(`
+  ${fs.readFileSync('typedefs/UserTypedef.gql', 'utf8')}
+  ${fs.readFileSync('typedefs/ContactTypedef.graphql', 'utf8')}
+`);
+
+// Combine les résolveurs de contacts et utilisateurs
+const resolvers = {
+  Query: {
+    ...userResolvers.Query,
+    ...contactResolvers.Query,
+  },
+  Mutation: {
+    ...userResolvers.Mutation,
+    ...contactResolvers.Mutation,
+  },
+};
+
+
+// Middleware pour vérifier le token JWT
+const authContext = ({ req }) => {
+  const token = req.headers.authorization || '';
+
+  if (token) {
+    try {
+      const decoded = verifyToken(token.replace('Bearer ', '')); 
+      if (decoded) {
+        return { userId: decoded.id }; 
+      }
+    } catch (error) {
+      throw new Error("Token invalide ou expiré");
+    }
+  }
+
+  throw new Error("Authentification requise");
+};
+
+
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: authContext,
+});
+
+
+startStandaloneServer(server, {
+  listen: { port: 4000 },
+  path: "/graphql",
+}).then(({ url }) => {
+  console.log(`Serveur démarré sur ${url}`);
+});
+
+ \end{lstlisting}
+
+
+apres il faut aller proteger le resolver que nous  voulons, nous allons le faire pour contact.
+
+
+
+\begin{lstlisting}[language=JavaScript]
+contacts : async (_, args, context) => {
+    if (!context.userId) {
+        console.log(context.userId);
+        
+      throw new Error("Vous devez être authentifié pour accéder aux contacts");
+    }
+    return await prisma.contact.findMany({
+        include: { user: true },
+      });     },
+
+\end{lstlisting}
+  \vspace{1cm}
+
+
+ \vspace{1cm}
+    Voici le resultat du test de la route register
+    \begin{center} 
+    \includegraphics[width=1\textwidth]{aut.png} 
+\end{center}
+    \vspace{1cm}
+
+
+
+
+Maintenant , il faut copier le tocken pour aller mettre dans le header
+
+
+    Voici le resultat:
+    \begin{center} 
+    \includegraphics[width=1\textwidth]{ii.png} 
+\end{center}
+    \vspace{1cm}
+
+
+
+
+
+
+
+\end{document}
+
